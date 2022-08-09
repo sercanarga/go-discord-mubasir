@@ -29,7 +29,7 @@ func main() {
 	dg.AddHandler(modules.UpdateStatus)
 	dg.AddHandler(modules.CallBot)
 	dg.AddHandler(modules.UserJoinEvent)
-	dg.AddHandler(modules.BotChangeChannelEvent)
+	//dg.AddHandler(modules.BotChangeChannelEvent)
 
 	dg.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildVoiceStates
 

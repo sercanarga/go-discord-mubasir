@@ -8,5 +8,4 @@ type Users struct {
 	gorm.Model
 	DiscordId     string
 	CustomMessage string
-	IsAdmin       bool
 }

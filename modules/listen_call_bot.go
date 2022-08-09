@@ -61,7 +61,7 @@ func CallBot(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		changeUserId := m.Mentions[0].ID
 
-		if verifyAdmin(m.Author.ID) || m.Author.ID == changeUserId {
+		if verifyAdmin(s, m.Author.ID, m.GuildID) || m.Author.ID == changeUserId {
 			var user db.Users
 
 			customMsg := strings.Join(msg[2:], " ")
@@ -69,7 +69,7 @@ func CallBot(s *discordgo.Session, m *discordgo.MessageCreate) {
 				db.DB.First(&user, "discord_id = ?", changeUserId)
 				db.DB.Model(&user).Updates(db.Users{CustomMessage: customMsg})
 			} else {
-				db.DB.Create(&db.Users{DiscordId: changeUserId, CustomMessage: customMsg, IsAdmin: false})
+				db.DB.Create(&db.Users{DiscordId: changeUserId, CustomMessage: customMsg})
 			}
 
 			_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
