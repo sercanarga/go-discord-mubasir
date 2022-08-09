@@ -3,7 +3,7 @@ package modules
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"mubasirNew/db"
+	"mubasirv2/db"
 	"regexp"
 )
 
