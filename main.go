@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"mubasirNew/db"
-	"mubasirNew/modules"
+	"mubasirv2/db"
+	"mubasirv2/modules"
 	"os"
 	"os/signal"
 	"syscall"
