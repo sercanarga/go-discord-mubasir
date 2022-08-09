@@ -1,6 +1,6 @@
 package modules
 
-import "mubasirNew/db"
+import "mubasirv2/db"
 
 func verifyAdmin(discordId string) bool {
 	var user db.Users
