@@ -23,8 +23,8 @@ func PlaySound(vc *discordgo.VoiceConnection) (err error) {
 	return
 }
 
-func loadSound() error {
-	file, err := os.Open("tmp/output.dca")
+func loadSound(filename string) error {
+	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Error opening dca file :", err)
 		return err

@@ -3,7 +3,6 @@ package modules
 import (
 	texttospeech "cloud.google.com/go/texttospeech/apiv1"
 	"context"
-	"fmt"
 	"github.com/jonas747/dca"
 	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 	"io"
@@ -48,7 +47,7 @@ func TextToSpeech(text string, outputFile string) {
 	}
 }
 
-func ConvertDCA(readFile string, outputFile string) {
+func ConvertDCA(readFile string, outputFile string) error {
 	var encodeOpts = &dca.EncodeOptions{
 		Volume:           256,
 		Channels:         2,
@@ -68,8 +67,12 @@ func ConvertDCA(readFile string, outputFile string) {
 	output, err := os.Create(outputFile)
 
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
-	io.Copy(output, encodeSession)
+	_, err = io.Copy(output, encodeSession)
+	if err != nil {
+		return err
+	}
+	return nil
 }

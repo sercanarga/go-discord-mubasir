@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"mubasirv2/db"
+	"os"
 	"strings"
 )
 
@@ -28,7 +29,7 @@ func CallBot(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	switch {
-	case m.Content == "!m":
+	case m.Content == "!mubasir":
 		c, err := s.State.Channel(m.ChannelID)
 		if err != nil {
 			return
@@ -49,22 +50,61 @@ func CallBot(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		}
 
-	case strings.HasPrefix(m.Content, "!mubasir"):
+	case strings.HasPrefix(m.Content, "!m"):
 		msg := strings.Split(m.Content, " ")
 
-		if len(msg) < 3 {
+		if m.Attachments == nil && (len(msg) < 3 || len(m.Mentions) != 1) {
 			_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-				Content: "<@" + m.Author.ID + "> kayıt için `!mubasir <kullanıcı> <metin>` kullanınız.",
+				Content: "<@" + m.Author.ID + "> kayıt için `!m <kullanıcı> <metin>` kullanınız.",
 			})
 			return
 		}
-
 		changeUserId := m.Mentions[0].ID
 
 		if verifyAdmin(s, m.Author.ID, m.GuildID) || m.Author.ID == changeUserId {
 			var user db.Users
 
+			if len(m.Attachments) == 1 {
+				url := strings.Split(m.Attachments[0].URL, ".")
+				extension := url[len(url)-1]
+
+				if extension == "mp3" && m.Attachments[0].Size < 1000000 {
+					err := DownloadFile("tmp/"+changeUserId+".mp3", m.Attachments[0].URL)
+					if err != nil {
+						_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+							Content: "Dosya discord CDN'den indirilemedi!",
+						})
+						return
+					}
+
+					err = ConvertDCA("tmp/"+changeUserId+".mp3", "tmp/"+changeUserId+".dca")
+					_ = os.Remove("tmp/" + changeUserId + ".mp3")
+					if err != nil {
+						_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+							Content: "Ses dosyası dönüştürülemedi!",
+						})
+						return
+					}
+				} else {
+					_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+						Content: "En fazla 1MB boyutunda `.mp3` uzantılı dosyalar yüklenebilir.",
+					})
+					return
+				}
+				_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+					Content: "<@" + changeUserId + "> kullanıcısının karşılama metni `SES` olarak güncellendi!",
+				})
+				return
+			}
+			if _, err := os.Stat("tmp/" + changeUserId + ".dca"); err == nil {
+				_ = os.Remove("tmp/" + changeUserId + ".dca")
+			}
+
 			customMsg := strings.Join(msg[2:], " ")
+			if len(customMsg) > 50 {
+				customMsg = ""
+			}
+
 			if verifyUser(changeUserId) {
 				db.DB.First(&user, "discord_id = ?", changeUserId)
 				db.DB.Model(&user).Updates(db.Users{CustomMessage: customMsg})
@@ -75,6 +115,7 @@ func CallBot(s *discordgo.Session, m *discordgo.MessageCreate) {
 			_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
 				Content: "<@" + changeUserId + "> kullanıcısının karşılama metni `" + customMsg + "` olarak güncellendi!",
 			})
+
 		} else {
 			_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
 				Content: "<@" + m.Author.ID + "> kullanıcısı, <@" + changeUserId + "> kullanıcısı için yetkisi olmadığı halde işlem yapmaya çalıştı!",
