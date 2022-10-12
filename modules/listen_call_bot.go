@@ -59,7 +59,16 @@ func CallBot(s *discordgo.Session, m *discordgo.MessageCreate) {
 			})
 			return
 		}
-		changeUserId := m.Mentions[0].ID
+
+		changeUserId := ""
+		if m.Mentions[0] != nil {
+			changeUserId = m.Mentions[0].ID
+		} else {
+			_, _ = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+				Content: "<@" + m.Author.ID + "> kayıt için `!m <kullanıcı> <metin>` kullanınız.",
+			})
+			return
+		}
 
 		if verifyAdmin(s, m.Author.ID, m.GuildID) || m.Author.ID == changeUserId {
 			var user db.Users
